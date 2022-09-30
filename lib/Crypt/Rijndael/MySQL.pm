@@ -5,17 +5,28 @@ package Crypt::Rijndael::MySQL;
 
 use base 'Crypt::Rijndael';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new {
     my $class = shift;
     my $key   = shift;
+    my $meta  = shift;
+
+    my $iv    = $meta->{iv} || undef;
+    my $mode  = $meta->{mode} || 1;  # default MODE_ECB: 1
     
     my @parts = unpack '(A16)*', $key;
     $key = "\0" x 16;
     $key ^= $_ foreach @parts;
     
-    my $self = $class->SUPER::new($key, @_);
+    my $self = $class->SUPER::new($key, $mode);
+    $self->set_iv($iv) 
+       if ( defined $iv && 
+             (defined $mode && 
+                 ( $mode == $self->MODE_CBC() || $mode == $self->MODE_CFB() || $mode == $self->MODE_OFB() )
+             )
+          );
+
     bless $self, $class; # force
 }
 
@@ -57,6 +68,15 @@ Crypt::Rijndael::MySQL - MySQL compatible Rijndael (AES) encryption module
     $crypted = $cipher->encrypt($plaintext);
     $plaintext = $cipher->decrypt($crypted);
 
+   # -----------------------------
+    use Crypt::Rijndael;
+    use Crypt::Rijndael::MySQL;
+  
+    $cipher = Crypt::Rijndael::MySQL->new($key, { iv => $iv, mode => Crypt::Rijndael::MODE_CBC()});
+    $crypted = $cipher->encrypt($plaintext);
+    $plaintext = $cipher->decrypt($crypted);
+   
+
 =head1 DESCRIPTION
 
 This module is a thin wrapper around Crypt::Rijndael, meant for
@@ -64,7 +84,7 @@ compatibility with MySQL AES_ENCRYPT() AND AES_DECRYPT() functions.
 
 =head1 SEE ALSO
 
-L<Crypt::Rijndael>, http://dev.mysql.com/doc/refman/5.1/en/encryption-functions.html
+L<Crypt::Rijndael>, http://dev.mysql.com/doc/refman/5.1/en/encryption-functions.html, https://dev.mysql.com/doc/refman/8.0/en/encryption-functions.html
 
 =head1 AUTHOR
 

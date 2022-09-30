@@ -1,5 +1,8 @@
 Revision history for Perl extension Crypt::Rijndael::MySQL.
 
+0.03  Fri Seq 30 16:39:30 CST 2022
+        - Compatible with higher MySQL version
+
 0.02  Fri Jul  2 01:59:44 MSD 2010
         - fixed a syntax error in Makefile.PL
 
